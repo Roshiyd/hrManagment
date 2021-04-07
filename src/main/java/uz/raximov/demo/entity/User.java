@@ -74,4 +74,13 @@ public class User extends AbsEntity implements UserDetails {
     public boolean isEnabled() {
         return isEnabled;
     }
+
+    public User(String fullName, String password, Set<Role> roles, @Email String email, String position, boolean isEnabled) {
+        this.fullName = fullName;
+        this.password = password;
+        this.roles = roles;
+        this.email = email;
+        this.position = position;
+        this.isEnabled = isEnabled;
+    }
 }

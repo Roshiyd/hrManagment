@@ -20,4 +20,9 @@ public class Company {
 
     @Column(nullable = false)
     private String name;
+
+    public Company(User director, String name) {
+        this.director = director;
+        this.name = name;
+    }
 }

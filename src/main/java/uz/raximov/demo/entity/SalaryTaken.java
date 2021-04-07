@@ -25,7 +25,5 @@ public class SalaryTaken extends AbsEntity {
     @Enumerated(EnumType.STRING)
     private Month period;
 
-
-
     private boolean paid = false; //oy uchun to'langanlik holati
 }

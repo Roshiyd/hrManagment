@@ -4,11 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.GenericGenerator;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import uz.raximov.demo.entity.template.AbsEntity;
-import uz.raximov.demo.enums.RoleName;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -24,7 +22,7 @@ import java.util.Set;
 @Entity(name = "users")
 public class User extends AbsEntity implements UserDetails {
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private String fullName;
 
     @Column(nullable = false)
@@ -33,9 +31,10 @@ public class User extends AbsEntity implements UserDetails {
     @ManyToMany
     private Set<Role> roles;
 
-    @Email
     @Column(unique = true, nullable = false)
     private String email;
+
+    private String verifyCode;
 
     private String position;
 

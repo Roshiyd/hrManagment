@@ -3,6 +3,8 @@ package uz.raximov.demo.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -14,6 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import uz.raximov.demo.security.JwtFilter;
 import uz.raximov.demo.service.MyAuthService;
+
+import java.util.Properties;
 
 @Configuration
 @EnableWebSecurity
@@ -35,7 +39,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/","/api/login").permitAll()
+                .antMatchers("/", "/api/login","/api/user/verifyEmail").permitAll()
                 .anyRequest().authenticated();
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
@@ -50,5 +54,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public JavaMailSender getJavaMailSender(){
+        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+        mailSender.setHost("smpt.gmail.com");
+        mailSender.setPort(587);
+        mailSender.setUsername("steamcheats6@gmail.com");
+        mailSender.setPassword("2003rh1rh2rh3");
+        Properties properties = mailSender.getJavaMailProperties();
+        properties.put("mail.transport.prootocol","smtp");
+        properties.put("mail.smtp.auth","true");
+        properties.put("mail.smtp.starttls.enable", "true");
+        properties.put("mail.debug", "true");
+        return mailSender;
     }
 }

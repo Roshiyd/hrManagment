@@ -26,7 +26,7 @@ public class Task extends AbsEntity {
     private Timestamp deadline;
 
     @Enumerated(EnumType.STRING)
-    private TaskStatus status;
+    private TaskStatus status = TaskStatus.STATUS_NEW;
 
     @ManyToOne(optional = false)
     private User taskTaker;//qabul qiluvchi

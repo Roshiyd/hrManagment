@@ -6,6 +6,7 @@ import uz.raximov.demo.entity.Role;
 import uz.raximov.demo.entity.User;
 import uz.raximov.demo.enums.RoleName;
 import uz.raximov.demo.repository.UserRepository;
+import uz.raximov.demo.response.ApiResponse;
 import uz.raximov.demo.security.JwtProvider;
 
 import javax.servlet.http.HttpServletRequest;
@@ -22,8 +23,11 @@ public class Checker {
     UserRepository userRepository;
 
     public boolean check(HttpServletRequest httpServletRequest, String role){
-        String autorization = httpServletRequest.getHeader("Autorization");
-        String token = autorization.substring(7);
+        String token = httpServletRequest.getHeader("Autorization");
+        if (token == null)
+            return false;
+        token = token.substring(7);
+
         String email = jwtProvider.getUsernameFromToken(token);
         Optional<User> userOptional = userRepository.findByEmail(email);
         if (userOptional.isPresent()){
@@ -40,12 +44,41 @@ public class Checker {
 
                 if (role.equals(RoleName.ROLE_STAFF.name()) &&
                         ((adminrole.getName().name().equals(RoleName.ROLE_MANAGER.name()) &&
-                        position.toLowerCase().equals("hrmanagement")) ||
+                        position.equalsIgnoreCase("hrmanagement")) ||
                                 adminrole.getName().name().equals(RoleName.ROLE_DIRECTOR.name()))){
                     return true;
                 }
             }
         }
         return false;
+    }
+
+    public ApiResponse checkForAny(HttpServletRequest httpServletRequest, String role){
+        String token = httpServletRequest.getHeader("Autorization");
+        if (token == null)
+            return new ApiResponse("Invalid token!", false);
+        token = token.substring(7);
+
+        String email = jwtProvider.getUsernameFromToken(token);
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (userOptional.isPresent()){
+            Set<Role> roles = userOptional.get().getRoles(); //qo'shmoqchi bo'lgan role(hrManagement, direktor)
+            if (role.equals(RoleName.ROLE_DIRECTOR.name()))
+                return new ApiResponse("False!", false);
+
+            for (Role adminrole : roles) {
+                if (role.equals(RoleName.ROLE_MANAGER.name()) &&
+                        adminrole.getName().name().equals(RoleName.ROLE_DIRECTOR.name())){
+                    return new ApiResponse("True", true, userOptional.get());
+                }
+
+                if (role.equals(RoleName.ROLE_STAFF.name()) &&
+                        ((adminrole.getName().name().equals(RoleName.ROLE_MANAGER.name()) ||
+                        adminrole.getName().name().equals(RoleName.ROLE_DIRECTOR.name())))){
+                    return  new ApiResponse("True", true, userOptional.get());
+                }
+            }
+        }
+        return new ApiResponse("False!", false);
     }
 }

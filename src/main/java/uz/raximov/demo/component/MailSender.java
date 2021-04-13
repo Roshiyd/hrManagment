@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
+import java.util.UUID;
 
 @Component
 public class MailSender {
@@ -15,10 +16,10 @@ public class MailSender {
     JavaMailSender mailSender;
 
     public boolean send(String to, String text) throws MessagingException {
-        String from = "hayot@gmail.com";
+        String from = "management@gmail.com";
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message);
-        helper.setSubject("Confirm email");
+        helper.setSubject("Information!");
         helper.setFrom(from);
         helper.setTo(to);
         helper.setText(text, true);
@@ -40,5 +41,27 @@ public class MailSender {
 
     public boolean mailTextEdit(String email) {
         return true;
+    }
+
+    public boolean mailTextAddTask(String email, String name, UUID id) throws MessagingException {
+        String link = "http:localhost:8080/api/task/" + id;
+        String text = "You have been given a task called " + name + "." + "<br>" + "<a href=\""+link+"\" style=\"padding: 10px 15px; background-color: darkslateblue; color: white; text-decoration: none; border-radius: 4px; margin: 10px; display: flex; max-width: 120px;\">View task</a>\n" +
+                "<br>\n";
+        return send(email, text);
+    }
+
+    public boolean mailTextTaskCompleted(String emailGiver, String emailTaker, String taskName) throws MessagingException {
+        String text = "<b>" + emailTaker + "</b> - The <b>"+ taskName + "</b> task you attached to the user is complete.";
+
+        return send(emailGiver,text);
+    }
+
+    public void mailTextTurniketStatus(String email, boolean enabled) throws MessagingException {
+        String stat = "Disabled";
+        if (enabled)
+          stat = "Enabled!";
+        String text = "Attention! Turniket status has changed. Current status: <b>" + stat + " </b>";
+
+        send(email, text);
     }
 }

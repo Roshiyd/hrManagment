@@ -79,8 +79,11 @@ public class UserService {
 
     public ApiResponse edit(UserDto userDto, HttpServletRequest httpServletRequest) {
         //faqat userni o'zi o'zgartiradi
-        String autorization = httpServletRequest.getHeader("Authorization");
-        String token = autorization.substring(7);
+        String token = httpServletRequest.getHeader("Autorization");
+        if (token == null)
+            return new ApiResponse("Invalid token!", false);
+        token = token.substring(7);
+
         String email = jwtProvider.getUsernameFromToken(token);
 
         Optional<User> optionalUser = userRepository.findByEmail(email);
@@ -111,8 +114,11 @@ public class UserService {
     }
 
     public ApiResponse getOne(HttpServletRequest httpServletRequest){
-        String autorization = httpServletRequest.getHeader("Autorization");
-        String token = autorization.substring(7);
+        String token = httpServletRequest.getHeader("Autorization");
+        if (token == null)
+            return new ApiResponse("Invalid token!", false);
+        token = token.substring(7);
+
         String email = jwtProvider.getUsernameFromToken(token);
         Optional<User> optionalUser = userRepository.findByEmail(email);
         return optionalUser.map(user -> new ApiResponse("Get by token!", true, user)).orElseGet(() -> new ApiResponse("Invalid token!", false, null));

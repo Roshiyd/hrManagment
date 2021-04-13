@@ -64,7 +64,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         mailSender.setUsername("steamcheats6@gmail.com");
         mailSender.setPassword("2003rh1rh2rh3");
         Properties properties = mailSender.getJavaMailProperties();
-        properties.put("mail.transport.prootocol","smtp");
+        properties.put("mail.transport.protocol","smtp");
         properties.put("mail.smtp.auth","true");
         properties.put("mail.smtp.starttls.enable", "true");
         properties.put("mail.debug", "true");

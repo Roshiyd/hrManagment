@@ -4,10 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uz.raximov.demo.payload.UserDto;
-import uz.raximov.demo.response.ApiResponse;
+import uz.raximov.demo.payload.response.ApiResponse;
 import uz.raximov.demo.security.JwtProvider;
 import uz.raximov.demo.service.UserService;
 
@@ -26,7 +25,7 @@ public class UserController {
     JwtProvider jwtProvider;
 
     //YANGI USER(MANAGER, XODIM) QO'SHISH
-    @PreAuthorize(value = "hasAnyRole('ROLE_DIRECTOR','ROLE_MANAGER')")
+//    @PreAuthorize(value = "hasAnyRole('ROLE_DIRECTOR','ROLE_MANAGER')")
     @PostMapping
     public HttpEntity<?> add(@Valid @RequestBody UserDto userDto, HttpServletRequest httpServletRequest) throws MessagingException {
         ApiResponse apiResponse = userService.add(userDto, httpServletRequest);
@@ -34,7 +33,7 @@ public class UserController {
     }
 
     //MA'LUMOTLARNI O'ZGARTIRISH, FOYDALANUVCHILAR FAQAT O'ZLARINING MA'LUMOTLARINI O'ZGARTIRA OLADI
-    @PreAuthorize(value = "hasAnyRole('ROLE_DIRECTOR','ROLE_MANAGER','ROLE_STAFF')")
+//    @PreAuthorize(value = "hasAnyRole('ROLE_DIRECTOR','ROLE_MANAGER','ROLE_STAFF')")
     @PutMapping
     public HttpEntity<?> edit(@Valid @RequestBody UserDto userDto, HttpServletRequest httpServletRequest) throws MessagingException {
         ApiResponse apiResponse = userService.edit(userDto, httpServletRequest);
@@ -42,7 +41,7 @@ public class UserController {
     }
 
     //TOKEN BO'YICHA FOYDALANUVCHI MA'LUMOTLARINI QAYTARADI
-    @PreAuthorize(value = "hasAnyRole('ROLE_DIRECTOR','ROLE_MANAGER','ROLE_STAFF')")
+//    @PreAuthorize(value = "hasAnyRole('ROLE_DIRECTOR','ROLE_MANAGER','ROLE_STAFF')")
     @GetMapping("/me")
     public HttpEntity<?> getByToken(HttpServletRequest httpServletRequest){
         ApiResponse apiResponse = userService.getOne(httpServletRequest);
@@ -50,7 +49,7 @@ public class UserController {
     }
 
     //EMAIL BO'YICHA FOYDALANUVCHI MA'LUMOTLARINI QAYTARADI
-    @PreAuthorize(value = "hasAnyRole('ROLE_DIRECTOR','ROLE_MANAGER')")
+//    @PreAuthorize(value = "hasAnyRole('ROLE_DIRECTOR','ROLE_MANAGER')")
     @GetMapping()
     public HttpEntity<?> getByEmail(@RequestParam String email, HttpServletRequest httpServletRequest){
         ApiResponse apiResponse = userService.getByEmail(email, httpServletRequest);

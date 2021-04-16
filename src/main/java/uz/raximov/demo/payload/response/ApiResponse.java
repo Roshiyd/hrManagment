@@ -1,4 +1,4 @@
-package uz.raximov.demo.response;
+package uz.raximov.demo.payload.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

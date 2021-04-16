@@ -12,7 +12,7 @@ import uz.raximov.demo.enums.RoleName;
 import uz.raximov.demo.payload.UserDto;
 import uz.raximov.demo.repository.RoleRepository;
 import uz.raximov.demo.repository.UserRepository;
-import uz.raximov.demo.response.ApiResponse;
+import uz.raximov.demo.payload.response.ApiResponse;
 import uz.raximov.demo.security.JwtProvider;
 
 import javax.mail.MessagingException;
@@ -79,7 +79,7 @@ public class UserService {
 
     public ApiResponse edit(UserDto userDto, HttpServletRequest httpServletRequest) {
         //faqat userni o'zi o'zgartiradi
-        String token = httpServletRequest.getHeader("Autorization");
+        String token = httpServletRequest.getHeader("Authorization");
         if (token == null)
             return new ApiResponse("Invalid token!", false);
         token = token.substring(7);
@@ -114,7 +114,7 @@ public class UserService {
     }
 
     public ApiResponse getOne(HttpServletRequest httpServletRequest){
-        String token = httpServletRequest.getHeader("Autorization");
+        String token = httpServletRequest.getHeader("Authorization");
         if (token == null)
             return new ApiResponse("Invalid token!", false);
         token = token.substring(7);
@@ -137,6 +137,25 @@ public class UserService {
         }
 
         boolean check = checker.check(httpServletRequest, role);
+        if (!check)
+            return new ApiResponse("You have no such right!", false);
+
+        return new ApiResponse("Get by email!",true,userOptional.get());
+    }
+
+    public ApiResponse getByEmailforTask(String email, HttpServletRequest httpServletRequest){
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (!userOptional.isPresent())
+            return new ApiResponse("Email not found!", false);
+
+        Set<Role> roles = userOptional.get().getRoles();
+        String role = RoleName.ROLE_STAFF.name();
+        for (Role roleName : roles) {
+            role = roleName.getName().name();
+            break;
+        }
+
+        boolean check = checker.check(httpServletRequest);
         if (!check)
             return new ApiResponse("You have no such right!", false);
 

@@ -5,9 +5,11 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Cascade;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import uz.raximov.demo.entity.template.AbsEntity;
 
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import java.util.UUID;
@@ -17,6 +19,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Data
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 public class Turniket extends AbsEntity {
 
     @ManyToOne

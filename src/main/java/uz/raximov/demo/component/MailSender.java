@@ -50,6 +50,13 @@ public class MailSender {
         return send(email, text);
     }
 
+    public boolean mailTextEditTask(String email, String name, UUID id) throws MessagingException {
+        String link = "http:localhost:8080/api/task/" + id;
+        String text = "Sizning <b>" + name + "</b> nomli vazifangiz o'zgartirildi." + "<br>" + "<a href=\""+link+"\" style=\"padding: 10px 15px; background-color: darkslateblue; color: white; text-decoration: none; border-radius: 4px; margin: 10px; display: flex; max-width: 120px;\">View task</a>\n" +
+                "<br>\n";
+        return send(email, text);
+    }
+
     public boolean mailTextTaskCompleted(String emailGiver, String emailTaker, String taskName) throws MessagingException {
         String text = "<b>" + emailTaker + "</b> - The <b>"+ taskName + "</b> task you attached to the user is complete.";
 

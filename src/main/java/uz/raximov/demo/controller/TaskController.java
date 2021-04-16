@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uz.raximov.demo.payload.TaskDto;
-import uz.raximov.demo.response.ApiResponse;
+import uz.raximov.demo.payload.response.ApiResponse;
 import uz.raximov.demo.service.TaskService;
 
 import javax.mail.MessagingException;

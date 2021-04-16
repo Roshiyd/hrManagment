@@ -1,6 +1,5 @@
 package uz.raximov.demo.service;
 
-import org.omg.CORBA.PUBLIC_MEMBER;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uz.raximov.demo.component.Checker;
@@ -13,14 +12,14 @@ import uz.raximov.demo.enums.RoleName;
 import uz.raximov.demo.payload.TurniketDto;
 import uz.raximov.demo.repository.CompanyRepository;
 import uz.raximov.demo.repository.TurniketRepository;
-import uz.raximov.demo.response.ApiResponse;
+import uz.raximov.demo.payload.response.ApiResponse;
 import uz.raximov.demo.security.JwtProvider;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 @Service
 public class TurniketService {
@@ -122,10 +121,11 @@ public class TurniketService {
         return new ApiResponse("You have no such right!", false);
     }
 
+    //TOKEN BO'YICHA MA'LUMOTLARNI QAYTARADI
     public ApiResponse getAll(HttpServletRequest httpServletRequest){
-        String autorization = httpServletRequest.getHeader("Autorization");
+        String autorization = httpServletRequest.getHeader("Authorization");
         String username = jwtProvider.getUsernameFromToken(autorization.substring(7));
-        ApiResponse byEmail = userService.getByEmail(username, httpServletRequest);
+        ApiResponse byEmail = userService.getByEmailforTask(username, httpServletRequest);
         if (!byEmail.isStatus())
             return byEmail;
 
@@ -140,7 +140,21 @@ public class TurniketService {
         if (role.equals(RoleName.ROLE_DIRECTOR.name()))
             return new ApiResponse("Turniket List",true, turniketRepository.findAll());
 
+        return new ApiResponse("Turniket List",true, turniketRepository.findAllByOwner(user));
+    }
 
+    public ApiResponse getByUser(User user, HttpServletRequest httpServletRequest){
+        Set<Role> roles = user.getRoles();
+        String role = RoleName.ROLE_STAFF.name();
+        for (Role roleName : roles) {
+            role = roleName.getName().name();
+            break;
+        }
+        boolean check = checker.check(httpServletRequest, role);
+        if (!check)
+            return new ApiResponse("Sizga mumkin emas!", false);
 
+        Optional<Turniket> optionalTurniket = turniketRepository.findAllByOwner(user);
+        return new ApiResponse("TurniketListByUser", true, optionalTurniket);
     }
 }

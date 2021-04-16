@@ -6,7 +6,7 @@ import uz.raximov.demo.entity.Role;
 import uz.raximov.demo.entity.User;
 import uz.raximov.demo.enums.RoleName;
 import uz.raximov.demo.repository.UserRepository;
-import uz.raximov.demo.response.ApiResponse;
+import uz.raximov.demo.payload.response.ApiResponse;
 import uz.raximov.demo.security.JwtProvider;
 
 import javax.servlet.http.HttpServletRequest;
@@ -23,7 +23,7 @@ public class Checker {
     UserRepository userRepository;
 
     public boolean check(HttpServletRequest httpServletRequest, String role){
-        String token = httpServletRequest.getHeader("Autorization");
+        String token = httpServletRequest.getHeader("Authorization");
         if (token == null)
             return false;
         token = token.substring(7);
@@ -54,7 +54,7 @@ public class Checker {
     }
 
     public ApiResponse checkForAny(HttpServletRequest httpServletRequest, String role){
-        String token = httpServletRequest.getHeader("Autorization");
+        String token = httpServletRequest.getHeader("Authorization");
         if (token == null)
             return new ApiResponse("Invalid token!", false);
         token = token.substring(7);
@@ -80,5 +80,26 @@ public class Checker {
             }
         }
         return new ApiResponse("False!", false);
+    }
+
+    public boolean check(HttpServletRequest httpServletRequest){
+        String token = httpServletRequest.getHeader("Authorization");
+        if (token == null)
+            return false;
+        token = token.substring(7);
+
+        String email = jwtProvider.getUsernameFromToken(token);
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (userOptional.isPresent()){
+            User user = userOptional.get();
+            for (Role role : user.getRoles()) {
+                if (role.getName().name().equals(RoleName.ROLE_DIRECTOR.name())
+                        || ((role.getName().name().equals(RoleName.ROLE_MANAGER.name())
+                        && user.getPosition().toLowerCase().equals("hrmanagement")))){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

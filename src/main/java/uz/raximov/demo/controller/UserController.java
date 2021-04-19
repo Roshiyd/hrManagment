@@ -27,32 +27,32 @@ public class UserController {
     //YANGI USER(MANAGER, XODIM) QO'SHISH
 //    @PreAuthorize(value = "hasAnyRole('ROLE_DIRECTOR','ROLE_MANAGER')")
     @PostMapping
-    public HttpEntity<?> add(@Valid @RequestBody UserDto userDto, HttpServletRequest httpServletRequest) throws MessagingException {
-        ApiResponse apiResponse = userService.add(userDto, httpServletRequest);
+    public HttpEntity<?> add(@Valid @RequestBody UserDto userDto) throws MessagingException {
+        ApiResponse apiResponse = userService.add(userDto);
         return ResponseEntity.status(apiResponse.isStatus() ? HttpStatus.OK : HttpStatus.BAD_REQUEST).body(apiResponse);
     }
 
     //MA'LUMOTLARNI O'ZGARTIRISH, FOYDALANUVCHILAR FAQAT O'ZLARINING MA'LUMOTLARINI O'ZGARTIRA OLADI
 //    @PreAuthorize(value = "hasAnyRole('ROLE_DIRECTOR','ROLE_MANAGER','ROLE_STAFF')")
     @PutMapping
-    public HttpEntity<?> edit(@Valid @RequestBody UserDto userDto, HttpServletRequest httpServletRequest) throws MessagingException {
-        ApiResponse apiResponse = userService.edit(userDto, httpServletRequest);
+    public HttpEntity<?> edit(@Valid @RequestBody UserDto userDto) throws MessagingException {
+        ApiResponse apiResponse = userService.edit(userDto);
         return ResponseEntity.status(apiResponse.isStatus()?HttpStatus.OK:HttpStatus.BAD_REQUEST).body(apiResponse);
     }
 
     //TOKEN BO'YICHA FOYDALANUVCHI MA'LUMOTLARINI QAYTARADI
 //    @PreAuthorize(value = "hasAnyRole('ROLE_DIRECTOR','ROLE_MANAGER','ROLE_STAFF')")
     @GetMapping("/me")
-    public HttpEntity<?> getByToken(HttpServletRequest httpServletRequest){
-        ApiResponse apiResponse = userService.getOne(httpServletRequest);
+    public HttpEntity<?> getByToken(){
+        ApiResponse apiResponse = userService.getOne();
         return ResponseEntity.status(apiResponse.isStatus()?200:409).body(apiResponse);
     }
 
     //EMAIL BO'YICHA FOYDALANUVCHI MA'LUMOTLARINI QAYTARADI
 //    @PreAuthorize(value = "hasAnyRole('ROLE_DIRECTOR','ROLE_MANAGER')")
     @GetMapping()
-    public HttpEntity<?> getByEmail(@RequestParam String email, HttpServletRequest httpServletRequest){
-        ApiResponse apiResponse = userService.getByEmail(email, httpServletRequest);
+    public HttpEntity<?> getByEmail(@RequestParam String email){
+        ApiResponse apiResponse = userService.getByEmail(email);
         return ResponseEntity.status(apiResponse.isStatus()?200:409).body(apiResponse);
     }
 

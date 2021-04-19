@@ -1,6 +1,7 @@
 package uz.raximov.demo.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import uz.raximov.demo.component.Checker;
 import uz.raximov.demo.component.MailSender;
@@ -40,7 +41,7 @@ public class TaskService {
     JwtProvider jwtProvider;
 
     //YANGI TASK QO'SHISH
-    public ApiResponse add(TaskDto taskDto, HttpServletRequest httpServletRequest) throws MessagingException {
+    public ApiResponse add(TaskDto taskDto) throws MessagingException {
         String email = taskDto.getUserEmail();
         Optional<User> optionalUser = userRepository.findByEmail(email);
         if (!optionalUser.isPresent())
@@ -51,7 +52,7 @@ public class TaskService {
         Set<Role> roles = user.getRoles();
         ApiResponse response = null;
         for (Role role : roles) {
-            response = checker.checkForAny(httpServletRequest, role.getName().name());
+            response = checker.checkForAny(role.getName().name());
             if (!response.isStatus())
                 return new ApiResponse("You have no such right!", false);
         }
@@ -81,8 +82,8 @@ public class TaskService {
     }//YANGI TASK QO'SHISH
 
     //TASKNI O'ZGARTISRISH
-    public ApiResponse edit(UUID id, TaskDto taskDto, HttpServletRequest httpServletRequest) throws MessagingException {
-        ApiResponse apiResponse = getById(id, httpServletRequest);
+    public ApiResponse edit(UUID id, TaskDto taskDto) throws MessagingException {
+        ApiResponse apiResponse = getById(id);
         if (!apiResponse.isStatus())
             return apiResponse;
 
@@ -99,7 +100,7 @@ public class TaskService {
         Set<Role> roles = user.getRoles();
         ApiResponse response = null;
         for (Role role : roles) {
-            response = checker.checkForAny(httpServletRequest, role.getName().name());
+            response = checker.checkForAny(role.getName().name());
             if (!response.isStatus())
                 return new ApiResponse("You have no such right!", false);
         }
@@ -137,14 +138,9 @@ public class TaskService {
     }
 
     //TASK STATUSINI O'ZGARTIRISH(YA'NI AGAR YAKUNLANSA TASKNI BERGAN FOYDALANUVCHIGA XABAR YUBORISH VA BOSHQ.)
-    public ApiResponse editStatus(HttpServletRequest httpServletRequest, UUID id, TaskDto taskDto) throws MessagingException {
-        String token = httpServletRequest.getHeader("Authorization");
-        if (token == null)
-            return new ApiResponse("Invalid token!", false);
-        token = token.substring(7);
-
-        String username = jwtProvider.getUsernameFromToken(token);
-        Optional<User> optionalUser = userRepository.findByEmail(username);
+    public ApiResponse editStatus(UUID id, TaskDto taskDto) throws MessagingException {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Optional<User> optionalUser = userRepository.findById(user.getId());
         if (!optionalUser.isPresent())
             return new ApiResponse("User not found!", false);
 
@@ -153,7 +149,7 @@ public class TaskService {
             return new ApiResponse("Task not found!", false);
 
         Task task = optionalTask.get();
-        if (!task.getTaskTaker().getEmail().equals(username))
+        if (!task.getTaskTaker().getEmail().equals(user.getEmail()))
             return new ApiResponse("The task does not belong to you.", false);
 
         task.setStatus(taskDto.getStatus());
@@ -169,23 +165,18 @@ public class TaskService {
     }
 
     //ID BO'YICHA TASKNI QAYTARISH
-    public ApiResponse getById(UUID id, HttpServletRequest httpServletRequest) {
+    public ApiResponse getById(UUID id) {
         Optional<Task> byId = taskRepository.findById(id);
         if (!byId.isPresent())
             return new ApiResponse("Task Not found!", false);
 
-        String token = httpServletRequest.getHeader("Authorization");
-        if (token == null)
-            return new ApiResponse("Invalid token!", false);
-        token = token.substring(7);
-
-        String email = jwtProvider.getUsernameFromToken(token);
-        Optional<User> optionalUser = userRepository.findByEmail(email);
-        if (!optionalUser.isPresent())
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Optional<User> userOptional = userRepository.findById(user.getId());
+        if (!userOptional.isPresent())
             return new ApiResponse("Error!", false);
 
         //TASKNI DIREKTOR ROLIDAGI FOYDALANUVCHI KO'RMOQCHI BO'LSA
-        for (Role role : optionalUser.get().getRoles()) {
+        for (Role role : userOptional.get().getRoles()) {
             if (role.getName().name().equals(RoleName.ROLE_DIRECTOR.name()))
                 return new ApiResponse("Task by id!", true, byId.get());
         }
@@ -193,56 +184,41 @@ public class TaskService {
         //TASKNI FAQAT TASK BERILGAN FOYDALANIVCHI VA UNI BERGAN FOYDALANIVCHI KO'RISHINI TEKSHIRISH
         UUID idTaker = byId.get().getTaskTaker().getId();
         UUID idGiver = byId.get().getTaskGiver().getId();
-        UUID idToken = optionalUser.get().getId();
+        UUID idToken = userOptional.get().getId();
         if (idToken != idTaker && idToken != idGiver)
             return new ApiResponse("Your task does not belong to you!", false);
         return new ApiResponse("Task by id!", true, byId.get());
     }
 
     //BARCHA TASKLARNI QAYTARISH(HUQUQLAR BO'YICHA YA'NI FOYDALANUVCHI OLGAN TASKLARI)
-    public ApiResponse getAllTo(HttpServletRequest httpServletRequest) {
-        String token = httpServletRequest.getHeader("Authorization");
-        if (token == null)
-            return new ApiResponse("Invalid token!", false);
-        token = token.substring(7);
-
-        String username = jwtProvider.getUsernameFromToken(token);
-        Optional<User> optionalUser = userRepository.findByEmail(username);
-        if (!optionalUser.isPresent())
+    public ApiResponse getAllTo() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Optional<User> userOptional = userRepository.findById(user.getId());
+        if (!userOptional.isPresent())
             return new ApiResponse("User not found!", false);
-        List<Task> taskList = taskRepository.findAllByTaskGiver(optionalUser.get());
+        List<Task> taskList = taskRepository.findAllByTaskGiver(userOptional.get());
         return new ApiResponse("TaskTaker task list!", true, taskList);
     }
 
     //BARCHA TASKLARNI QAYTARISH(HUQUQLAR BO'YICHA YA'NI FOYDALANUVCHI BERGAN TASKLARI DIREKTOR VA MANAGERLAR UCHUN)
-    public ApiResponse getAllFrom(HttpServletRequest httpServletRequest) {
-        String token = httpServletRequest.getHeader("Authorization");
-        if (token == null)
-            return new ApiResponse("Invalid token!", false);
-        token = token.substring(7);
-
-        String username = jwtProvider.getUsernameFromToken(token);
-        Optional<User> optionalUser = userRepository.findByEmail(username);
-        if (!optionalUser.isPresent())
+    public ApiResponse getAllFrom() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Optional<User> userOptional = userRepository.findById(user.getId());
+        if (!userOptional.isPresent())
             return new ApiResponse("User not found!", false);
-        List<Task> taskList = taskRepository.findAllByTaskTaker(optionalUser.get());
+        List<Task> taskList = taskRepository.findAllByTaskTaker(userOptional.get());
         return new ApiResponse("TaskGiver task list!", true, taskList);
     }
 
     //TASKNI O'CHIRISH
-    public ApiResponse deleteById(UUID id, HttpServletRequest httpServletRequest) {
-        String token = httpServletRequest.getHeader("Authorization");
-        if (token == null)
-            return new ApiResponse("Invalid token!", false);
-        token = token.substring(7);
-
-        String email = jwtProvider.getUsernameFromToken(token);
-        Optional<User> optionalUser = userRepository.findByEmail(email);
-        if (!optionalUser.isPresent())
+    public ApiResponse deleteById(UUID id) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Optional<User> userOptional = userRepository.findById(user.getId());
+        if (!userOptional.isPresent())
             return new ApiResponse("User not found!", false);
 
         Optional<Task> byId = taskRepository.findById(id);
-        if (byId.isPresent() && byId.get().getTaskGiver().getEmail().equals(optionalUser.get().getEmail())) {
+        if (byId.isPresent() && byId.get().getTaskGiver().getEmail().equals(userOptional.get().getEmail())) {
             taskRepository.deleteById(id);
             return new ApiResponse("Task deleted!", true);
         }
@@ -250,14 +226,14 @@ public class TaskService {
     }
 
     //MA'LUM VAQT ORALIG'IDAGI USERNING QILGAN ISHLARI
-    public ApiResponse getAllByUserAndDate(Timestamp startTime, Timestamp endTime, User user, HttpServletRequest httpServletRequest) {
+    public ApiResponse getAllByUserAndDate(Timestamp startTime, Timestamp endTime, User user) {
         Set<Role> roles =user.getRoles();
         String role = null;
         for (Role roleName : roles) {
             role = roleName.getName().name();
             break;
         }
-        boolean check = checker.check(httpServletRequest, role);
+        boolean check = checker.check(role);
 
         if (!check)
             return new ApiResponse("Sizda ruxsat mavjud emas!", false);

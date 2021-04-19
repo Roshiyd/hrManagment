@@ -39,10 +39,6 @@ public class MailSender {
         return send(email,text);
     }
 
-    public boolean mailTextEdit(String email) {
-        return true;
-    }
-
     public boolean mailTextAddTask(String email, String name, UUID id) throws MessagingException {
         String link = "http:localhost:8080/api/task/" + id;
         String text = "You have been given a task called " + name + "." + "<br>" + "<a href=\""+link+"\" style=\"padding: 10px 15px; background-color: darkslateblue; color: white; text-decoration: none; border-radius: 4px; margin: 10px; display: flex; max-width: 120px;\">View task</a>\n" +
@@ -70,5 +66,9 @@ public class MailSender {
         String text = "Attention! Turniket status has changed. Current status: <b>" + stat + " </b>";
 
         send(email, text);
+    }
+
+    public boolean mailTextEdit(String email) {
+        return true;
     }
 }

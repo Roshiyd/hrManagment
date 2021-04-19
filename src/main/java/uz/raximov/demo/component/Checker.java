@@ -1,6 +1,7 @@
 package uz.raximov.demo.component;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import uz.raximov.demo.entity.Role;
 import uz.raximov.demo.entity.User;
@@ -22,14 +23,9 @@ public class Checker {
     @Autowired
     UserRepository userRepository;
 
-    public boolean check(HttpServletRequest httpServletRequest, String role){
-        String token = httpServletRequest.getHeader("Authorization");
-        if (token == null)
-            return false;
-        token = token.substring(7);
-
-        String email = jwtProvider.getUsernameFromToken(token);
-        Optional<User> userOptional = userRepository.findByEmail(email);
+    public boolean check(String role){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Optional<User> userOptional = userRepository.findById(user.getId());
         if (userOptional.isPresent()){
             Set<Role> roles = userOptional.get().getRoles(); //qo'shmoqchi bo'lgan role(hrManagement, direktor)
             String position = userOptional.get().getPosition();//XODIMLARNI QO'SHISH UCHUN HRMANAGER BO'LISHI KK
@@ -53,14 +49,9 @@ public class Checker {
         return false;
     }
 
-    public ApiResponse checkForAny(HttpServletRequest httpServletRequest, String role){
-        String token = httpServletRequest.getHeader("Authorization");
-        if (token == null)
-            return new ApiResponse("Invalid token!", false);
-        token = token.substring(7);
-
-        String email = jwtProvider.getUsernameFromToken(token);
-        Optional<User> userOptional = userRepository.findByEmail(email);
+    public ApiResponse checkForAny(String role){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Optional<User> userOptional = userRepository.findById(user.getId());
         if (userOptional.isPresent()){
             Set<Role> roles = userOptional.get().getRoles(); //qo'shmoqchi bo'lgan role(hrManagement, direktor)
             if (role.equals(RoleName.ROLE_DIRECTOR.name()))
@@ -82,16 +73,10 @@ public class Checker {
         return new ApiResponse("False!", false);
     }
 
-    public boolean check(HttpServletRequest httpServletRequest){
-        String token = httpServletRequest.getHeader("Authorization");
-        if (token == null)
-            return false;
-        token = token.substring(7);
-
-        String email = jwtProvider.getUsernameFromToken(token);
-        Optional<User> userOptional = userRepository.findByEmail(email);
+    public boolean check( ){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Optional<User> userOptional = userRepository.findById(user.getId());
         if (userOptional.isPresent()){
-            User user = userOptional.get();
             for (Role role : user.getRoles()) {
                 if (role.getName().name().equals(RoleName.ROLE_DIRECTOR.name())
                         || ((role.getName().name().equals(RoleName.ROLE_MANAGER.name())

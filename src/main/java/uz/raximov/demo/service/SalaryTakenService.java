@@ -1,6 +1,5 @@
 package uz.raximov.demo.service;
 
-import org.hibernate.annotations.Check;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uz.raximov.demo.component.Checker;
@@ -28,8 +27,8 @@ public class SalaryTakenService {
     @Autowired
     UserService userService;
 
-    public ApiResponse add(SalaryTakenDto salaryTakenDto, HttpServletRequest httpServletRequest){
-        ApiResponse response = userService.getByEmail(salaryTakenDto.getEmail(), httpServletRequest);
+    public ApiResponse add(SalaryTakenDto salaryTakenDto){
+        ApiResponse response = userService.getByEmail(salaryTakenDto.getEmail());
         if (!response.isStatus())
             return response;
         User user = (User) response.getObject();
@@ -40,7 +39,7 @@ public class SalaryTakenService {
             role = rolex.getName().name();
         }
 
-        boolean check = checker.check(httpServletRequest, role);
+        boolean check = checker.check(role);
         if(!check)
             return new ApiResponse("Sizda huquq yo'q!", false);
 
@@ -52,9 +51,9 @@ public class SalaryTakenService {
         return new ApiResponse("Xodimga oylik kiritildi!", true);
     }
 
-    public ApiResponse edit(SalaryTakenDto salaryTakenDto, HttpServletRequest httpServletRequest){
+    public ApiResponse edit(SalaryTakenDto salaryTakenDto){
 
-        ApiResponse response = userService.getByEmail(salaryTakenDto.getEmail(), httpServletRequest);
+        ApiResponse response = userService.getByEmail(salaryTakenDto.getEmail());
         if (!response.isStatus())
             return response;
         User user = (User) response.getObject();
@@ -65,7 +64,7 @@ public class SalaryTakenService {
             role = rolex.getName().name();
         }
 
-        boolean check = checker.check(httpServletRequest, role);
+        boolean check = checker.check(role);
         if(!check)
             return new ApiResponse("Sizda huquq yo'q!", false);
 
@@ -85,8 +84,8 @@ public class SalaryTakenService {
         return new ApiResponse("Xodimning oyligi o'zgartirildi!", true);
     }
 
-    public ApiResponse delete(String email, String month, HttpServletRequest httpServletRequest){
-        ApiResponse response = userService.getByEmail(email, httpServletRequest);
+    public ApiResponse delete(String email, String month){
+        ApiResponse response = userService.getByEmail(email);
         if (!response.isStatus())
             return response;
         User user = (User) response.getObject();
@@ -97,7 +96,7 @@ public class SalaryTakenService {
             role = rolex.getName().name();
         }
 
-        boolean check = checker.check(httpServletRequest, role);
+        boolean check = checker.check(role);
         if(!check)
             return new ApiResponse("Sizda huquq yo'q!", false);
 
@@ -124,8 +123,8 @@ public class SalaryTakenService {
     }
 
     //OYLIKNI BERILGAN HOLATGA O'TKAZISH
-    public ApiResponse customize(String email, String month, boolean stat, HttpServletRequest httpServletRequest){
-        ApiResponse response = userService.getByEmail(email, httpServletRequest);
+    public ApiResponse customize(String email, String month, boolean stat){
+        ApiResponse response = userService.getByEmail(email);
         if (!response.isStatus())
             return response;
         User user = (User) response.getObject();
@@ -136,7 +135,7 @@ public class SalaryTakenService {
             role = rolex.getName().name();
         }
 
-        boolean check = checker.check(httpServletRequest, role);
+        boolean check = checker.check(role);
         if(!check)
             return new ApiResponse("Sizda huquq yo'q!", false);
 
@@ -163,8 +162,8 @@ public class SalaryTakenService {
         return new ApiResponse("Oylik to'langanlik holati o'zgartirildi!", true);
     }
 
-    public ApiResponse getByUser(String email, HttpServletRequest httpServletRequest){
-        ApiResponse response = userService.getByEmail(email, httpServletRequest);
+    public ApiResponse getByUser(String email){
+        ApiResponse response = userService.getByEmail(email);
         if (!response.isStatus())
             return response;
         User user = (User) response.getObject();
@@ -175,15 +174,15 @@ public class SalaryTakenService {
             role = rolex.getName().name();
         }
 
-        boolean check = checker.check(httpServletRequest, role);
+        boolean check = checker.check(role);
         if(!check)
             return new ApiResponse("Sizda huquq yo'q!", false);
 
         return new ApiResponse("List by Owner", true, salaryTakenRepository.findAllByOwner(user));
     }
 
-    public ApiResponse getByMonth(String month, HttpServletRequest httpServletRequest){
-        boolean check = checker.check(httpServletRequest);
+    public ApiResponse getByMonth(String month){
+        boolean check = checker.check();
         if (!check)
             return new ApiResponse("Sizda huquq yo'q", false);
 

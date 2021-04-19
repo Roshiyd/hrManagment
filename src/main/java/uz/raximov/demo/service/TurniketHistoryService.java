@@ -30,7 +30,7 @@ public class TurniketHistoryService {
     @Autowired
     Checker checker;
 
-    public ApiResponse add(TurniketHistoryDto turniketHistoryDto, HttpServletRequest httpServletRequest){
+    public ApiResponse add(TurniketHistoryDto turniketHistoryDto){
         Optional<Turniket> optionalTurniket = turniketRepository.findByNumber(turniketHistoryDto.getNumber());
         if (!optionalTurniket.isPresent()) {
             return new ApiResponse("Karochchi brat ruxsati yo'q joyga kirmoqchi bo'lyapti! Turniket topilmadi!", false);
@@ -43,7 +43,7 @@ public class TurniketHistoryService {
             break;
         }
 
-        boolean check = checker.check(httpServletRequest, role);
+        boolean check = checker.check(role);
         if (!check)
             return new ApiResponse("Karochchi brat ruxsatiz yo'q joyga kirmoqchi bo'lyapsiz! Sizda huquq yo'q!", false);
 
@@ -54,7 +54,7 @@ public class TurniketHistoryService {
         return new ApiResponse("Yo'liz ochiq, bemalol kirishiz mumkin!", true);
     }
 
-    public ApiResponse getAllByDate(String number, Timestamp startTime, Timestamp endTime, HttpServletRequest httpServletRequest){
+    public ApiResponse getAllByDate(String number, Timestamp startTime, Timestamp endTime){
         Optional<Turniket> optionalTurniket = turniketRepository.findByNumber(number);
         if (!optionalTurniket.isPresent())
             return new ApiResponse("Karochchi brat ruxsati yo'q joyga kirmoqchi bo'lyapti! Bunaqa turniket yoq.", false);
@@ -66,7 +66,7 @@ public class TurniketHistoryService {
             break;
         }
 
-        boolean check = checker.check(httpServletRequest, role);
+        boolean check = checker.check(role);
         if (!check)
             return new ApiResponse("Karochchi brat ruxsatiz yo'q joyga kirmoqchi bo'lyapsiz! Sizda huquq yo'q!", false);
 
@@ -74,7 +74,7 @@ public class TurniketHistoryService {
         return new ApiResponse("History list by date",true, historyList);
     }
 
-    public ApiResponse getAll(String number, HttpServletRequest httpServletRequest){
+    public ApiResponse getAll(String number){
         Optional<Turniket> optionalTurniket = turniketRepository.findByNumber(number);
         if (!optionalTurniket.isPresent())
             return new ApiResponse("Karochchi brat ruxsati yo'q joyga kirmoqchi bo'lyapti! Bunaqa turniket yoq.", false);
@@ -86,7 +86,7 @@ public class TurniketHistoryService {
             break;
         }
 
-        boolean check = checker.check(httpServletRequest, role);
+        boolean check = checker.check(role);
         if (!check)
             return new ApiResponse("Karochchi brat ruxsatiz yo'q joyga kirmoqchi bo'lyapsiz! Sizda huquq yo'q!", false);
 

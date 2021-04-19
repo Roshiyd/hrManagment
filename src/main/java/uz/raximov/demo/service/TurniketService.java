@@ -1,6 +1,7 @@
 package uz.raximov.demo.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import uz.raximov.demo.component.Checker;
 import uz.raximov.demo.component.MailSender;
@@ -17,7 +18,6 @@ import uz.raximov.demo.security.JwtProvider;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -42,8 +42,8 @@ public class TurniketService {
     @Autowired
     JwtProvider jwtProvider;
 
-    public ApiResponse add(TurniketDto turniketDto, HttpServletRequest httpServletRequest) throws MessagingException {
-        ApiResponse response = userService.getByEmail(turniketDto.getOwnerEmail(), httpServletRequest);
+    public ApiResponse add(TurniketDto turniketDto) throws MessagingException {
+        ApiResponse response = userService.getByEmail(turniketDto.getOwnerEmail());
         if (!response.isStatus())
             return response;
 
@@ -63,7 +63,7 @@ public class TurniketService {
     }
 
     //FAQATGINA TURNIKETNING HUQUQINI O'ZGARTIRISH MUMKIN
-    public ApiResponse edit(String number, TurniketDto turniketDto, HttpServletRequest httpServletRequest) throws MessagingException {
+    public ApiResponse edit(String number, TurniketDto turniketDto) throws MessagingException {
         Optional<Turniket> optionalTurniket = turniketRepository.findByNumber(number);
         if (!optionalTurniket.isPresent())
             return new ApiResponse("Turniket not found!", false);
@@ -75,7 +75,7 @@ public class TurniketService {
         return new ApiResponse("Turniket succesfully edited!", true);
     }
 
-    public ApiResponse delete(String number, HttpServletRequest httpServletRequest){
+    public ApiResponse delete(String number){
         Optional<Turniket> optionalTurniket = turniketRepository.findByNumber(number);
         if (!optionalTurniket.isPresent())
                 return new ApiResponse("Turniket not found!", false);
@@ -87,7 +87,7 @@ public class TurniketService {
             role = roleName.getName().name();
             break;
         }
-        boolean check = checker.check(httpServletRequest, role);
+        boolean check = checker.check(role);
 
         if (!check)
             return new ApiResponse("You have no such right!", false);
@@ -96,10 +96,9 @@ public class TurniketService {
         return new ApiResponse("Turniket deleted!", true);
     }
 
-    public ApiResponse getByNumber(HttpServletRequest httpServletRequest, String number){
-        String autorization = httpServletRequest.getHeader("Autorization");
-        String username = jwtProvider.getUsernameFromToken(autorization.substring(7));
-        ApiResponse byEmail = userService.getByEmail(username, httpServletRequest);
+    public ApiResponse getByNumber(String number){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        ApiResponse byEmail = userService.getByEmailforCustom(user.getEmail());
         if (!byEmail.isStatus())
             return byEmail;
 
@@ -113,23 +112,21 @@ public class TurniketService {
             role = roleName.getName().name();
             break;
         }
-        boolean check = checker.check(httpServletRequest, role);
+        boolean check = checker.check(role);
 
-        if (byNumber.get().getOwner().getEmail().equals(username) || check){
+        if (byNumber.get().getOwner().getEmail().equals(user.getEmail()) || check){
             return new ApiResponse("Turniket", true, byNumber.get());
         }
         return new ApiResponse("You have no such right!", false);
     }
 
     //TOKEN BO'YICHA MA'LUMOTLARNI QAYTARADI
-    public ApiResponse getAll(HttpServletRequest httpServletRequest){
-        String autorization = httpServletRequest.getHeader("Authorization");
-        String username = jwtProvider.getUsernameFromToken(autorization.substring(7));
-        ApiResponse byEmail = userService.getByEmailforTask(username, httpServletRequest);
+    public ApiResponse getAll(){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        ApiResponse byEmail = userService.getByEmailforCustom(user.getEmail());
         if (!byEmail.isStatus())
             return byEmail;
 
-        User user = (User) byEmail.getObject();
         Set<Role> roles = user.getRoles();
         String role = RoleName.ROLE_STAFF.name();
         for (Role roleName : roles) {
@@ -143,14 +140,14 @@ public class TurniketService {
         return new ApiResponse("Turniket List",true, turniketRepository.findAllByOwner(user));
     }
 
-    public ApiResponse getByUser(User user, HttpServletRequest httpServletRequest){
+    public ApiResponse getByUser(User user){
         Set<Role> roles = user.getRoles();
         String role = RoleName.ROLE_STAFF.name();
         for (Role roleName : roles) {
             role = roleName.getName().name();
             break;
         }
-        boolean check = checker.check(httpServletRequest, role);
+        boolean check = checker.check(role);
         if (!check)
             return new ApiResponse("Sizga mumkin emas!", false);
 

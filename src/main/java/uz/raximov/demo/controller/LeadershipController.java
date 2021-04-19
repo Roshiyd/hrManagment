@@ -27,20 +27,20 @@ public class LeadershipController {
     SalaryTakenService salaryTakenService;
 
     @GetMapping
-    public HttpEntity<?> getHistoryAndTasks(@RequestParam Timestamp startTime, @RequestParam Timestamp endTime, @RequestParam String number, HttpServletRequest httpServletRequest){
-        ApiResponse apiResponse = leadershipService.getHistoryAndTasks(startTime, endTime, number, httpServletRequest);
+    public HttpEntity<?> getHistoryAndTasks(@RequestParam Timestamp startTime, @RequestParam Timestamp endTime, @RequestParam String number){
+        ApiResponse apiResponse = leadershipService.getHistoryAndTasks(startTime, endTime, number);
         return ResponseEntity.status(!apiResponse.isStatus()? HttpStatus.OK:HttpStatus.BAD_REQUEST).body(apiResponse);
     }
 
     @GetMapping("/salaryByUser")
-    public HttpEntity<?> getByUser(@RequestParam String email, HttpServletRequest httpServletRequest){
-        ApiResponse apiResponse = salaryTakenService.getByUser(email, httpServletRequest);
+    public HttpEntity<?> getByUser(@RequestParam String email){
+        ApiResponse apiResponse = salaryTakenService.getByUser(email);
         return ResponseEntity.status(apiResponse.isStatus()? HttpStatus.OK:HttpStatus.BAD_REQUEST).body(apiResponse);
     }
 
     @GetMapping("/salaryByMonth")
-    public HttpEntity<?> getByMonth(@RequestParam String month, HttpServletRequest httpServletRequest){
-        ApiResponse apiResponse = salaryTakenService.getByMonth(month, httpServletRequest);
+    public HttpEntity<?> getByMonth(@RequestParam String month){
+        ApiResponse apiResponse = salaryTakenService.getByMonth(month);
         return ResponseEntity.status(apiResponse.isStatus()? HttpStatus.OK:HttpStatus.BAD_REQUEST).body(apiResponse);
     }
 }

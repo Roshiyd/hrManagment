@@ -1,6 +1,7 @@
 package uz.raximov.demo.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import uz.raximov.demo.component.Checker;
@@ -46,12 +47,12 @@ public class UserService {
     @Autowired
     JwtProvider jwtProvider;
 
-    public ApiResponse add(UserDto userDto, HttpServletRequest httpServletRequest) throws MessagingException {
+    public ApiResponse add(UserDto userDto) throws MessagingException {
         Optional<Role> roleOptional = roleRepository.findById(userDto.getRoleId());
         if (!roleOptional.isPresent())
             return new ApiResponse("Role id not found!", false);
 
-        boolean check = checker.check(httpServletRequest, roleOptional.get().getName().name());//huquqni tekshirish
+        boolean check = checker.check(roleOptional.get().getName().name());//huquqni tekshirish
         if (!check)
             return new ApiResponse("You have no such right!", false);
 
@@ -77,31 +78,24 @@ public class UserService {
         return new ApiResponse("Xatolik yuz berdi!", false);
     }
 
-    public ApiResponse edit(UserDto userDto, HttpServletRequest httpServletRequest) {
+    public ApiResponse edit(UserDto userDto) {
         //faqat userni o'zi o'zgartiradi
-        String token = httpServletRequest.getHeader("Authorization");
-        if (token == null)
-            return new ApiResponse("Invalid token!", false);
-        token = token.substring(7);
-
-        String email = jwtProvider.getUsernameFromToken(token);
-
-        Optional<User> optionalUser = userRepository.findByEmail(email);
-        if (!optionalUser.isPresent())
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Optional<User> userOptional = userRepository.findById(user.getId());
+        if (!userOptional.isPresent())
             return new ApiResponse("Email not found!", false);
 
         Optional<Role> roleOptional = roleRepository.findById(userDto.getRoleId());
         if (!roleOptional.isPresent())
             return new ApiResponse("Role id not found!", false);
 
-        boolean existsByEmail = userRepository.existsByEmailAndIdNot(userDto.getEmail(), optionalUser.get().getId());
+        boolean existsByEmail = userRepository.existsByEmailAndIdNot(userDto.getEmail(), userOptional.get().getId());
         if (existsByEmail)
             return new ApiResponse("Email already exists!", false);
 
-        User user = optionalUser.get();
         user.setEmail(userDto.getEmail());
         user.setFullName(userDto.getFullName());
-        Set<Role> roles = optionalUser.get().getRoles();
+        Set<Role> roles = userOptional.get().getRoles();
         roles.add(roleOptional.get());
         user.setRoles(roles);
         user.setPosition(userDto.getPosition());
@@ -113,18 +107,13 @@ public class UserService {
         return new ApiResponse("Xatolik yuz berdi!", false);
     }
 
-    public ApiResponse getOne(HttpServletRequest httpServletRequest){
-        String token = httpServletRequest.getHeader("Authorization");
-        if (token == null)
-            return new ApiResponse("Invalid token!", false);
-        token = token.substring(7);
-
-        String email = jwtProvider.getUsernameFromToken(token);
-        Optional<User> optionalUser = userRepository.findByEmail(email);
-        return optionalUser.map(user -> new ApiResponse("Get by token!", true, user)).orElseGet(() -> new ApiResponse("Invalid token!", false, null));
+    public ApiResponse getOne(){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Optional<User> userOptional = userRepository.findById(user.getId());
+        return userOptional.map(newuser -> new ApiResponse("Get by token!", true, user)).orElseGet(() -> new ApiResponse("Invalid token!", false, null));
     }
 
-    public ApiResponse getByEmail(String email, HttpServletRequest httpServletRequest){
+    public ApiResponse getByEmail(String email){
         Optional<User> userOptional = userRepository.findByEmail(email);
         if (!userOptional.isPresent())
             return new ApiResponse("Email not found!", false);
@@ -136,14 +125,14 @@ public class UserService {
             break;
         }
 
-        boolean check = checker.check(httpServletRequest, role);
+        boolean check = checker.check(role);
         if (!check)
             return new ApiResponse("You have no such right!", false);
 
         return new ApiResponse("Get by email!",true,userOptional.get());
     }
 
-    public ApiResponse getByEmailforTask(String email, HttpServletRequest httpServletRequest){
+    public ApiResponse getByEmailforCustom(String email){
         Optional<User> userOptional = userRepository.findByEmail(email);
         if (!userOptional.isPresent())
             return new ApiResponse("Email not found!", false);
@@ -155,7 +144,7 @@ public class UserService {
             break;
         }
 
-        boolean check = checker.check(httpServletRequest);
+        boolean check = checker.check();
         if (!check)
             return new ApiResponse("You have no such right!", false);
 

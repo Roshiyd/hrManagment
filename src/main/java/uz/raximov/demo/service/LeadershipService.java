@@ -36,21 +36,21 @@ public class LeadershipService {
     //Har bir xodim haqidagi ma’lumotlarni ko’rmochi
     // bo’lsa ushbu xodimning belgilangan oraliq vaqt
     // bo’yicha ishga kelib-ketishi va bajargan tasklari haqida ma’lumot chiqishi kerak.
-    public ApiResponse getHistoryAndTasks(Timestamp startTime, Timestamp endTime, String email, HttpServletRequest httpServletRequest){
-        ApiResponse apiResponse = userService.getByEmail(email, httpServletRequest);
+    public ApiResponse getHistoryAndTasks(Timestamp startTime, Timestamp endTime, String email){
+        ApiResponse apiResponse = userService.getByEmail(email);
         if (!apiResponse.isStatus())
             return apiResponse;
 
         User user = (User) apiResponse.getObject();
 
-        ApiResponse responseTurniket = turniketService.getByUser(user, httpServletRequest);
+        ApiResponse responseTurniket = turniketService.getByUser(user);
         if (!responseTurniket.isStatus())
             return responseTurniket;
 
         Turniket turniket = (Turniket) responseTurniket.getObject();
-        ApiResponse historyList = turniketHistoryService.getAllByDate(turniket.getNumber(), startTime, endTime, httpServletRequest);
+        ApiResponse historyList = turniketHistoryService.getAllByDate(turniket.getNumber(), startTime, endTime);
 
-        ApiResponse taskList = taskService.getAllByUserAndDate(startTime, endTime, user, httpServletRequest);
+        ApiResponse taskList = taskService.getAllByUserAndDate(startTime, endTime, user);
 
         List<ApiResponse> responseList = new ArrayList<>();
         responseList.add(historyList);

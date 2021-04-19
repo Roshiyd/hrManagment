@@ -21,20 +21,20 @@ public class TurniketHistoryController {
     TurniketHistoryService turniketHistoryService;
 
     @PostMapping
-    public HttpEntity<?> add(@Valid @RequestBody TurniketHistoryDto turniketHistoryDto, HttpServletRequest httpServletRequest){
-        ApiResponse apiResponse = turniketHistoryService.add(turniketHistoryDto, httpServletRequest);
+    public HttpEntity<?> add(@Valid @RequestBody TurniketHistoryDto turniketHistoryDto){
+        ApiResponse apiResponse = turniketHistoryService.add(turniketHistoryDto);
         return ResponseEntity.status(apiResponse.isStatus()? HttpStatus.OK:HttpStatus.BAD_REQUEST).body(apiResponse);
     }
 
     @GetMapping("/bydate")
-    public HttpEntity<?> getAllByDate(@RequestParam String number, @RequestParam Timestamp startTime, @RequestParam Timestamp endTime, HttpServletRequest httpServletRequest){
-        ApiResponse apiResponse = turniketHistoryService.getAllByDate(number, startTime, endTime, httpServletRequest);
+    public HttpEntity<?> getAllByDate(@RequestParam String number, @RequestParam Timestamp startTime, @RequestParam Timestamp endTime){
+        ApiResponse apiResponse = turniketHistoryService.getAllByDate(number, startTime, endTime);
         return ResponseEntity.status(apiResponse.isStatus()? HttpStatus.OK:HttpStatus.BAD_REQUEST).body(apiResponse);
     }
 
     @GetMapping("/all")
-    public HttpEntity<?> getAll(@RequestParam String number, HttpServletRequest httpServletRequest){
-        ApiResponse apiResponse = turniketHistoryService.getAll(number, httpServletRequest);
+    public HttpEntity<?> getAll(@RequestParam String number){
+        ApiResponse apiResponse = turniketHistoryService.getAll(number);
         return ResponseEntity.status(apiResponse.isStatus()? HttpStatus.OK:HttpStatus.BAD_REQUEST).body(apiResponse);
     }
 }
